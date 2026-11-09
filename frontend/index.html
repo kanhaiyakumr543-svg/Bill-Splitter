@@ -472,7 +472,9 @@
   }
 
   .item-row.low { border-left: 3px solid var(--warn); padding-left: 8px; }
-  .low-tag { font-family: var(--font-mono); font-size: 11px; color: var(--warn); border: 1px solid var(--warn); padding: 1px 5px; white-space: nowrap; }
+  .low-tag { font-family: var(--font-mono); font-size: 11px; color: var(--warn); border: 1px solid var(--warn); padding: 1px 5px; white-space: nowrap; background: transparent; cursor: pointer; }
+  .low-tag[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+  .low-tag:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .qty-tag { font-family: var(--font-mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
   .shares-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); }
   .share-chip { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line); padding: 2px 4px 2px 8px; }
@@ -755,7 +757,7 @@
       const m = name.match(/^(\d+)\s*[x×]\s*\S/i) || name.match(/\s[x×]\s*(\d+)$/i);
       qty = m ? Math.min(parseInt(m[1], 10), 50) : 1;
     }
-    state.items.push({ id: state.nextItemId++, name, price, qty, low: !!opts.low, uneven: false, weights: {}, people: new Set() });
+    state.items.push({ id: state.nextItemId++, name, price, qty, low: !!opts.low, checked: false, uneven: false, weights: {}, people: new Set() });
     renderItems();
     renderSummary();
   }
@@ -775,7 +777,7 @@
 
     for (const item of state.items) {
       const row = document.createElement("div");
-      row.className = "item-row" + (item.low ? " low" : "");
+      row.className = "item-row" + (item.low && !item.checked ? " low" : "");
 
       const top = document.createElement("div");
       top.className = "item-top";
@@ -786,7 +788,11 @@
       nameInput.value = item.name;
       nameInput.addEventListener("input", (e) => {
         item.name = e.target.value;
-        if (item.low) { item.low = false; row.classList.remove("low"); const t = row.querySelector(".low-tag"); if (t) t.remove(); }
+        if (item.low) {
+          item.checked = true;
+          row.classList.remove("low");
+          updateItemCheckButton(item, checkButton);
+        }
       });
       nameInput.addEventListener("blur", () => renderSummary());
 
@@ -804,7 +810,11 @@
       priceInput.addEventListener("input", (e) => {
         const v = parseFloat(e.target.value);
         item.price = isFinite(v) ? v : 0;
-        if (item.low) { item.low = false; row.classList.remove("low"); const t = row.querySelector(".low-tag"); if (t) t.remove(); }
+        if (item.low) {
+          item.checked = true;
+          row.classList.remove("low");
+          updateItemCheckButton(item, checkButton);
+        }
         renderSummary();
       });
       priceWrap.appendChild(sym);
@@ -818,12 +828,18 @@
       delBtn.addEventListener("click", () => removeItem(item.id));
 
       top.appendChild(nameInput);
+      let checkButton = null;
       if (item.low) {
-        const tag = document.createElement("span");
-        tag.className = "low-tag";
-        tag.textContent = "check";
-        tag.title = "The scan wasn't sure about this line";
-        top.appendChild(tag);
+        checkButton = document.createElement("button");
+        checkButton.type = "button";
+        checkButton.className = "low-tag";
+        checkButton.addEventListener("click", () => {
+          item.checked = !item.checked;
+          row.classList.toggle("low", item.low && !item.checked);
+          updateItemCheckButton(item, checkButton);
+        });
+        updateItemCheckButton(item, checkButton);
+        top.appendChild(checkButton);
       }
       top.appendChild(priceWrap);
       top.appendChild(delBtn);
@@ -908,6 +924,16 @@
       }
       wrap.appendChild(row);
     }
+  }
+
+  function updateItemCheckButton(item, button) {
+    const checked = item.checked === true;
+    button.textContent = checked ? "Checked" : "Check";
+    button.title = checked ? "Mark this item as needing review" : "Mark this item as checked";
+    button.setAttribute("aria-label", checked
+      ? "Mark " + item.name + " as needing review"
+      : "Mark " + item.name + " as checked");
+    button.setAttribute("aria-pressed", String(checked));
   }
 
   $("addItemForm").addEventListener("submit", (e) => {
