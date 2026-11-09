@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hisaab, Please</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #FAFAF6;
+    --paper-shadow: rgba(30, 28, 22, 0.16);
+    --ink: #1C1B18;
+    --ink-soft: #57534A;
+    --muted: #9A9384;
+    --line: #DBD5C6;
+    --accent: #2F6F4F;
+    --accent-ink: #F4FBF6;
+    --accent-soft: #E4EFE7;
+    --warn: #B4402F;
+    --warn-soft: #F6E7E3;
+    --stamp-empty: #FFFFFF;
+    --page-bg: #EDEAE1;
+    --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #201F1B;
+      --paper-shadow: rgba(0, 0, 0, 0.45);
+      --ink: #F1EDE3;
+      --ink-soft: #C7C0B0;
+      --muted: #7D766A;
+      --line: #423E34;
+      --accent: #56B187;
+      --accent-ink: #10251A;
+      --accent-soft: #29352C;
+      --warn: #E28374;
+      --warn-soft: #3A2622;
+      --stamp-empty: #2A2823;
+      --page-bg: #131210;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #201F1B;
+    --paper-shadow: rgba(0, 0, 0, 0.45);
+    --ink: #F1EDE3;
+    --ink-soft: #C7C0B0;
+    --muted: #7D766A;
+    --line: #423E34;
+    --accent: #56B187;
+    --accent-ink: #10251A;
+    --accent-soft: #29352C;
+    --warn: #E28374;
+    --warn-soft: #3A2622;
+    --stamp-empty: #2A2823;
+    --page-bg: #131210;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--page-bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    padding: 40px 16px 80px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .roll {
+    width: 100%;
+    max-width: 560px;
+  }
+
+  .receipt {
+    background: var(--paper);
+    box-shadow: 0 18px 40px var(--paper-shadow);
+    padding: 30px 28px 8px;
+    position: relative;
+  }
+
+  .header {
+    text-align: center;
+    padding-bottom: 18px;
+  }
+  .wordmark {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 0.08em;
+    margin: 0;
+  }
+  .header p {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+
+  .tear {
+    height: 14px;
+    margin: 0 -28px;
+    background:
+      linear-gradient(-45deg, var(--page-bg) 6px, transparent 0) 0 4px,
+      linear-gradient(45deg, var(--page-bg) 6px, var(--paper) 0) 0 4px;
+    background-size: 16px 16px;
+    background-repeat: repeat-x;
+    background-position: bottom;
+  }
+
+  section.block {
+    padding: 22px 0;
+  }
+
+  h2.section-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 14px;
+    color: var(--ink-soft);
+  }
+
+  /* People */
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--line);
+    padding: 6px 8px 6px 12px;
+    font-size: 14px;
+    background: transparent;
+    color: var(--ink);
+  }
+  .chip button {
+    border: none;
+    background: none;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px 4px;
+  }
+  .chip button:hover { color: var(--warn); }
+
+  .add-person-form {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  input[type="text"], input[type="number"] {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+  }
+  input:focus, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .add-person-form input { flex: 1; min-width: 0; }
+
+  button.primary {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 14px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    border: none;
+    padding: 9px 16px;
+    cursor: pointer;
+  }
+  button.primary:hover { filter: brightness(1.06); }
+  button.secondary {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    background: transparent;
+    color: var(--ink);
+    border: 1px dashed var(--line);
+    padding: 9px 14px;
+    cursor: pointer;
+  }
+  button.secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  .empty-note {
+    font-size: 13px;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  /* Scan */
+  .scan-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .scan-status {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-family: var(--font-mono);
+    min-height: 16px;
+  }
+  .paste-toggle { margin-top: 8px; }
+  .linklike {
+    border: none;
+    background: none;
+    color: var(--accent);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    padding: 2px 0;
+  }
+  #pasteArea { margin-top: 10px; }
+  #pasteInput {
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    resize: vertical;
+    margin-bottom: 8px;
+  }
+  .quick-add-hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin: 4px 0 8px;
+  }
+  #quickAddArea { margin-top: 12px; }
+  #quickAddInput {
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    resize: vertical;
+    margin-bottom: 8px;
+  }
+
+  /* Items */
+  .item-row {
+    padding: 12px 0;
+    border-bottom: 1px dotted var(--line);
+  }
+  .item-row:last-child { border-bottom: none; }
+  .item-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .item-name {
+    flex: 1;
+    border: none;
+    background: none;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--ink);
+    padding: 4px 2px;
+    min-width: 0;
+  }
+  .item-price-wrap {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-family: var(--font-mono);
+  }
+  .currency-sym { color: var(--muted); font-size: 14px; }
+  .item-price {
+    width: 74px;
+    border: none;
+    background: none;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    text-align: right;
+    color: var(--ink);
+    padding: 4px 2px;
+  }
+  .item-del {
+    border: none;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 2px 4px;
+  }
+  .item-del:hover { color: var(--warn); }
+
+  .stamp-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .stamp {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    border: 1.5px solid var(--line);
+    color: var(--muted);
+    background: var(--stamp-empty);
+    padding: 5px 9px;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+  }
+  .stamp.on {
+    border-color: var(--accent);
+    color: var(--accent-ink);
+    background: var(--accent);
+  }
+  .stamp:hover:not(.on) { border-color: var(--accent); color: var(--accent); }
+  .stamp-all {
+    border-style: dashed;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+
+  .add-item-form {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .add-item-form input[name="newItemName"] { flex: 1; min-width: 0; }
+  .add-item-form input[name="newItemPrice"] { width: 90px; }
+
+  /* Tax / tip */
+  .row-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .row-line label { color: var(--ink-soft); }
+  .row-line .amt-input {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .row-line input { width: 84px; text-align: right; }
+
+  .subtotal-line {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 10px;
+    margin-top: 4px;
+    border-top: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .banner {
+    margin-top: 14px;
+    background: var(--warn-soft);
+    color: var(--warn);
+    border: 1px solid var(--warn);
+    padding: 10px 12px;
+    font-size: 13px;
+    font-family: var(--font-mono);
+  }
+
+  /* Summary */
+  .stub {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 10px 0;
+    font-family: var(--font-mono);
+    font-size: 15px;
+    border-bottom: 1px dotted var(--line);
+  }
+  .stub:last-of-type { border-bottom: none; }
+  .stub .name { font-weight: 600; }
+  .stub .amt { font-weight: 700; font-size: 16px; }
+  .stub .breakdown {
+    display: block;
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .grand-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 14px 0 4px;
+    margin-top: 6px;
+    border-top: 2px solid var(--ink);
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .footer-actions {
+    display: flex;
+    justify-content: center;
+    padding: 20px 0 30px;
+  }
+
+  .save-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .save-row input { flex: 1; min-width: 0; }
+
+  .history-entry {
+    border-bottom: 1px dotted var(--line);
+    padding: 10px 0;
+  }
+  .history-entry:last-child { border-bottom: none; }
+  .history-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+  .h-date { color: var(--muted); white-space: nowrap; }
+  .h-label {
+    flex: 1;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .h-total { font-weight: 700; }
+  .h-people {
+    margin-top: 8px;
+    padding-left: 4px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .h-person-row { padding: 2px 0; }
+  .copy-note {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+    min-height: 14px;
+  }
+
+  .thanks {
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    padding: 4px 0 26px;
+  }
+
+  @media (max-width: 400px) {
+    .receipt { padding: 24px 18px 6px; }
+    .tear { margin: 0 -18px; }
+  }
+
+  .item-row.low { border-left: 3px solid var(--warn); padding-left: 8px; }
+  .low-tag { font-family: var(--font-mono); font-size: 11px; color: var(--warn); border: 1px solid var(--warn); padding: 1px 5px; white-space: nowrap; }
+  .qty-tag { font-family: var(--font-mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .shares-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); }
+  .share-chip { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line); padding: 2px 4px 2px 8px; }
+  .share-chip button { border: none; background: var(--accent-soft); color: var(--accent); width: 22px; height: 22px; font-size: 14px; line-height: 1; cursor: pointer; }
+  .units-note.warn { color: var(--warn); }
+  .check-ok, .check-warn { margin-top: 10px; padding: 9px 12px; font-size: 13px; font-family: var(--font-mono); }
+  .check-ok { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent); }
+  .check-warn { background: var(--warn-soft); color: var(--warn); border: 1px solid var(--warn); }
+  .payer-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 0; font-size: 14px; }
+  .payer-row select, .payer-row input { flex: 1; max-width: 220px; font-family: var(--font-sans); font-size: 14px; padding: 8px 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); }
+  .amt-wrap { display: flex; align-items: center; gap: 10px; }
+  .pay-link { font-family: var(--font-sans); font-size: 12px; font-weight: 600; background: var(--accent); color: var(--accent-ink); padding: 5px 10px; text-decoration: none; }
+  .footer-actions { gap: 10px; flex-wrap: wrap; }
+
+  .tip-opts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 2px 0 8px; font-size: 12px; color: var(--ink-soft); }
+  .tip-opts button { font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--line); background: transparent; color: var(--ink); padding: 4px 9px; cursor: pointer; }
+  .tip-opts button:hover { border-color: var(--accent); color: var(--accent); }
+  .tip-opts select { font-size: 12px; padding: 4px 6px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); }
+  .friend-chip { font-size: 13px; border: 1px dashed var(--line); background: transparent; color: var(--ink-soft); padding: 4px 4px 4px 10px; cursor: pointer; }
+  .friend-chip span { color: var(--muted); padding: 0 6px; }
+</style>
+</head>
+<body>
+<div class="roll">
+  <div class="receipt">
+    <div class="header">
+      <p class="wordmark">HISAAB, PLEASE</p>
+      <p id="dateLine"></p>
+    </div>
+
+    <div class="tear"></div>
+
+    <section class="block">
+      <h2 class="section-title">Who's splitting</h2>
+      <div class="chip-row" id="peopleChips"></div>
+      <form class="add-person-form" id="addPersonForm">
+        <input type="text" id="newPersonName" placeholder="Add a person" maxlength="24" autocomplete="off">
+        <button type="submit" class="primary">Add</button>
+      </form>
+      <div class="chip-row" id="friendChips" style="margin-top:10px"></div>
+    </section>
+
+    <div class="tear"></div>
+
+    <section class="block">
+      <h2 class="section-title">Scan or enter the bill</h2>
+      <div class="scan-actions">
+        <button type="button" class="primary" id="cameraBtn">Take a photo</button>
+        <button type="button" class="secondary" id="uploadBtn">Upload bill(s)</button>
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" multiple style="display:none">
+        <input type="file" id="uploadInput" accept="image/*,application/pdf" multiple style="display:none">
+      </div>
+      <p class="empty-note" style="margin-top:6px">Free OCR reads bills in your browser. Photos stay on this device; check the highlighted results before splitting.</p>
+      <div class="scan-status" id="scanStatus"></div>
+      <div class="paste-toggle">
+        <button type="button" class="linklike" id="pasteToggleBtn">Or paste the bill text instead</button>
+      </div>
+      <div id="pasteArea" style="display:none">
+        <textarea id="pasteInput" rows="6" placeholder="Paste the e-bill or receipt text here…"></textarea>
+        <button type="button" class="secondary" id="pasteAnalyzeBtn">Read items from text</button>
+      </div>
+    </section>
+
+    <div class="tear"></div>
+
+    <section class="block">
+      <h2 class="section-title">Items</h2>
+      <div id="itemsList"></div>
+      <p class="empty-note" id="itemsEmptyNote">No items yet — scan a receipt or add one below.</p>
+      <form class="add-item-form" id="addItemForm">
+        <input type="text" name="newItemName" placeholder="Item name" autocomplete="off">
+        <span class="currency-sym">₹</span>
+        <input type="number" name="newItemPrice" placeholder="0.00" step="0.01" min="0">
+        <button type="submit" class="secondary">+ Add</button>
+      </form>
+
+      <div class="paste-toggle">
+        <button type="button" class="linklike" id="quickAddToggleBtn">Add multiple items at once</button>
+      </div>
+      <div id="quickAddArea" style="display:none">
+        <p class="quick-add-hint">One item per line — e.g. <em>Paneer Tikka, 380</em></p>
+        <textarea id="quickAddInput" rows="6" placeholder="Paneer Tikka, 380&#10;Cold Coffee x2, 240&#10;Garlic Naan, 90"></textarea>
+        <button type="button" class="secondary" id="quickAddBtn">Add items</button>
+        <p class="scan-status" id="quickAddStatus"></p>
+      </div>
+
+      <div class="row-line">
+        <label for="taxInput">Tax</label>
+        <div class="amt-input"><span class="currency-sym">₹</span><input type="number" id="taxInput" step="0.01" min="0" value="0"></div>
+      </div>
+      <div class="row-line">
+        <label for="tipInput">Tip</label>
+        <div class="amt-input"><span class="currency-sym">₹</span><input type="number" id="tipInput" step="0.01" min="0" value="0"></div>
+      </div>
+      <div class="tip-opts">
+        <span>Tip as % of items:</span>
+        <button type="button" data-tip="5">5%</button><button type="button" data-tip="10">10%</button><button type="button" data-tip="15">15%</button>
+        <span>Split tip:</span>
+        <select id="tipMode"><option value="order">by what each ordered</option><option value="equal">equally</option></select>
+      </div>
+      <div class="row-line">
+        <label for="otherInput">Service charge / discount / round-off (±)</label>
+        <div class="amt-input"><span class="currency-sym">₹</span><input type="number" id="otherInput" step="0.01" value="0"></div>
+      </div>
+      <div class="subtotal-line">
+        <span>Bill total</span>
+        <span id="billTotal">₹0.00</span>
+      </div>
+      <div class="row-line">
+        <label for="printedInput">Total printed on the bill</label>
+        <div class="amt-input"><span class="currency-sym">₹</span><input type="number" id="printedInput" step="0.01" min="0" value="0"></div>
+      </div>
+      <div id="totalCheck"></div>
+      <div id="unassignedBanner"></div>
+    </section>
+
+    <div class="tear"></div>
+
+    <section class="block">
+      <h2 class="section-title">Each person owes</h2>
+      <div class="payer-row"><label for="payerSelect">Who paid the bill?</label><select id="payerSelect"></select></div>
+      <div class="payer-row"><label for="upiInput">Their UPI ID</label><input type="text" id="upiInput" placeholder="name@bank" autocomplete="off"></div>
+      <div id="summaryList"></div>
+      <div class="grand-total">
+        <span>Collected</span>
+        <span id="collectedTotal">₹0.00</span>
+      </div>
+      <div class="save-row">
+        <input type="text" id="splitLabel" placeholder="Label this split (optional)" maxlength="60">
+        <button type="button" class="secondary" id="saveSplitBtn">Save this split</button>
+      </div>
+      <p class="copy-note" id="saveNote"></p>
+    </section>
+
+    <div class="tear"></div>
+
+    <section class="block">
+      <h2 class="section-title">Past splits</h2>
+      <button type="button" class="linklike" id="historyToggleBtn">View past splits</button>
+      <div id="historyArea" style="display:none">
+        <div id="historyList"></div>
+        <p class="empty-note" id="historyEmptyNote" style="display:none">No saved splits yet.</p>
+        <p class="scan-status" id="historyStatus"></p>
+      </div>
+    </section>
+
+    <div class="footer-actions">
+      <button type="button" class="secondary" id="copyBtn">Copy summary</button>
+      <button type="button" class="primary" id="shareBtn">Share on WhatsApp</button>
+    </div>
+    <p class="copy-note" id="copyNote"></p>
+    <p class="thanks">thanks for splitting fairly</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  const CURRENCY = "₹";
+
+  if (window.pdfjsLib) {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  }
+
+  const state = {
+    people: [],       // {id, name}
+    items: [],         // {id, name, price, people: Set<id>}
+    tax: 0,
+    tip: 0,
+    other: 0,
+    tipMode: "order",
+    printedTotal: 0,
+    payerId: null,
+    upi: "",
+    nextPersonId: 1,
+    nextItemId: 1,
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  function fmt(n) {
+    if (!isFinite(n)) n = 0;
+    return CURRENCY + n.toFixed(2);
+  }
+
+  function initials(name) {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return "?";
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+
+  // ---------- date line ----------
+  $("dateLine").textContent = new Date().toLocaleDateString(undefined, {
+    weekday: "short", year: "numeric", month: "short", day: "numeric",
+  });
+
+  // ---------- people ----------
+  function renderPeople() {
+    const wrap = $("peopleChips");
+    wrap.innerHTML = "";
+    if (state.people.length === 0) {
+      const note = document.createElement("span");
+      note.className = "empty-note";
+      note.textContent = "Add everyone at the table.";
+      wrap.appendChild(note);
+    }
+    for (const p of state.people) {
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      chip.textContent = p.name + " ";
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = "×";
+      btn.setAttribute("aria-label", "Remove " + p.name);
+      btn.addEventListener("click", () => removePerson(p.id));
+      chip.appendChild(btn);
+      wrap.appendChild(chip);
+    }
+  }
+
+  const FRIENDS_KEY = "checkplease_friends_v1";
+  function getFriends() { try { const a = JSON.parse(localStorage.getItem(FRIENDS_KEY) || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+  function setFriends(a) { try { localStorage.setItem(FRIENDS_KEY, JSON.stringify(a.slice(0, 12))); } catch (e) {} }
+  function renderFriends() {
+    const box = $("friendChips");
+    box.innerHTML = "";
+    const here = new Set(state.people.map((p) => p.name.toLowerCase()));
+    for (const f of getFriends().filter((n) => !here.has(n.toLowerCase()))) {
+      const c = document.createElement("button");
+      c.type = "button"; c.className = "friend-chip"; c.textContent = "+ " + f;
+      const x = document.createElement("span"); x.textContent = "×"; x.title = "Forget " + f;
+      x.addEventListener("click", (e) => { e.stopPropagation(); setFriends(getFriends().filter((n) => n !== f)); renderFriends(); });
+      c.appendChild(x);
+      c.addEventListener("click", () => addPerson(f));
+      box.appendChild(c);
+    }
+  }
+
+  function addPerson(name) {
+    name = name.trim();
+    if (!name) return;
+    setFriends([name].concat(getFriends().filter((n) => n.toLowerCase() !== name.toLowerCase())));
+    state.people.push({ id: state.nextPersonId++, name });
+    renderFriends();
+    renderPeople();
+    renderItems();
+    renderSummary();
+  }
+
+  function removePerson(id) {
+    state.people = state.people.filter((p) => p.id !== id);
+    for (const item of state.items) item.people.delete(id);
+    renderFriends();
+    renderPeople();
+    renderItems();
+    renderSummary();
+  }
+
+  $("addPersonForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const input = $("newPersonName");
+    addPerson(input.value);
+    input.value = "";
+    input.focus();
+  });
+
+  // ---------- items ----------
+  function addItem(name, price, opts) {
+    opts = opts || {};
+    name = (name || "").trim() || "Item";
+    price = Number(price);
+    if (!isFinite(price) || price < 0) price = 0;
+    let qty = parseInt(opts.qty, 10);
+    if (!(qty >= 1)) {
+      const m = name.match(/^(\d+)\s*[x×]\s*\S/i) || name.match(/\s[x×]\s*(\d+)$/i);
+      qty = m ? Math.min(parseInt(m[1], 10), 50) : 1;
+    }
+    state.items.push({ id: state.nextItemId++, name, price, qty, low: !!opts.low, uneven: false, weights: {}, people: new Set() });
+    renderItems();
+    renderSummary();
+  }
+
+  function removeItem(id) {
+    state.items = state.items.filter((i) => i.id !== id);
+    renderItems();
+    renderSummary();
+  }
+
+  const wOf = (item, pid) => (item.weights && item.weights[pid]) || 1;
+
+  function renderItems() {
+    const wrap = $("itemsList");
+    wrap.innerHTML = "";
+    $("itemsEmptyNote").style.display = state.items.length === 0 ? "block" : "none";
+
+    for (const item of state.items) {
+      const row = document.createElement("div");
+      row.className = "item-row" + (item.low ? " low" : "");
+
+      const top = document.createElement("div");
+      top.className = "item-top";
+
+      const nameInput = document.createElement("input");
+      nameInput.type = "text";
+      nameInput.className = "item-name";
+      nameInput.value = item.name;
+      nameInput.addEventListener("input", (e) => {
+        item.name = e.target.value;
+        if (item.low) { item.low = false; row.classList.remove("low"); const t = row.querySelector(".low-tag"); if (t) t.remove(); }
+      });
+      nameInput.addEventListener("blur", () => renderSummary());
+
+      const priceWrap = document.createElement("span");
+      priceWrap.className = "item-price-wrap";
+      const sym = document.createElement("span");
+      sym.className = "currency-sym";
+      sym.textContent = CURRENCY;
+      const priceInput = document.createElement("input");
+      priceInput.type = "number";
+      priceInput.step = "0.01";
+      priceInput.min = "0";
+      priceInput.className = "item-price";
+      priceInput.value = item.price.toFixed(2);
+      priceInput.addEventListener("input", (e) => {
+        const v = parseFloat(e.target.value);
+        item.price = isFinite(v) ? v : 0;
+        if (item.low) { item.low = false; row.classList.remove("low"); const t = row.querySelector(".low-tag"); if (t) t.remove(); }
+        renderSummary();
+      });
+      priceWrap.appendChild(sym);
+      priceWrap.appendChild(priceInput);
+
+      const delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "item-del";
+      delBtn.textContent = "✕";
+      delBtn.setAttribute("aria-label", "Remove " + item.name);
+      delBtn.addEventListener("click", () => removeItem(item.id));
+
+      top.appendChild(nameInput);
+      if (item.low) {
+        const tag = document.createElement("span");
+        tag.className = "low-tag";
+        tag.textContent = "check";
+        tag.title = "The scan wasn't sure about this line";
+        top.appendChild(tag);
+      }
+      top.appendChild(priceWrap);
+      top.appendChild(delBtn);
+      row.appendChild(top);
+
+      const stampRow = document.createElement("div");
+      stampRow.className = "stamp-row";
+      if (state.people.length === 0) {
+        const note = document.createElement("span");
+        note.className = "empty-note";
+        note.textContent = "Add people above to split this.";
+        stampRow.appendChild(note);
+      }
+      if (state.people.length > 1) {
+        const allOn = state.people.every((p) => item.people.has(p.id));
+        const allStamp = document.createElement("button");
+        allStamp.type = "button";
+        allStamp.className = "stamp stamp-all" + (allOn ? " on" : "");
+        allStamp.textContent = "ALL";
+        allStamp.title = allOn ? "Clear everyone" : "Everyone shares this item";
+        allStamp.addEventListener("click", () => {
+          const nowAllOn = state.people.every((p) => item.people.has(p.id));
+          if (nowAllOn) { item.people.clear(); item.weights = {}; }
+          else for (const p of state.people) item.people.add(p.id);
+          renderItems();
+          renderSummary();
+        });
+        stampRow.appendChild(allStamp);
+      }
+      for (const p of state.people) {
+        const stamp = document.createElement("button");
+        stamp.type = "button";
+        stamp.className = "stamp" + (item.people.has(p.id) ? " on" : "");
+        stamp.textContent = initials(p.name);
+        stamp.title = p.name;
+        stamp.addEventListener("click", () => {
+          if (item.people.has(p.id)) { item.people.delete(p.id); delete item.weights[p.id]; }
+          else item.people.add(p.id);
+          renderItems();
+          renderSummary();
+        });
+        stampRow.appendChild(stamp);
+      }
+      row.appendChild(stampRow);
+
+      // Per-unit / uneven shares
+      const selected = state.people.filter((p) => item.people.has(p.id));
+      if (selected.length > 0 && (item.qty > 1 || item.uneven)) {
+        const sr = document.createElement("div");
+        sr.className = "shares-row";
+        const lead = document.createElement("span");
+        lead.textContent = item.qty > 1 ? "Units each:" : "Shares:";
+        sr.appendChild(lead);
+        for (const p of selected) {
+          const chip = document.createElement("span");
+          chip.className = "share-chip";
+          const w = wOf(item, p.id);
+          const minus = document.createElement("button");
+          minus.type = "button"; minus.textContent = "−";
+          minus.addEventListener("click", () => { item.weights[p.id] = Math.max(1, wOf(item, p.id) - 1); renderItems(); renderSummary(); });
+          const plus = document.createElement("button");
+          plus.type = "button"; plus.textContent = "+";
+          plus.addEventListener("click", () => { item.weights[p.id] = wOf(item, p.id) + 1; renderItems(); renderSummary(); });
+          const label = document.createElement("span");
+          label.textContent = p.name.split(" ")[0] + " " + w;
+          chip.appendChild(label); chip.appendChild(minus); chip.appendChild(plus);
+          sr.appendChild(chip);
+        }
+        if (item.qty > 1) {
+          const assigned = selected.reduce((s2, p) => s2 + wOf(item, p.id), 0);
+          const note = document.createElement("span");
+          note.className = "units-note" + (assigned !== item.qty ? " warn" : "");
+          note.textContent = assigned + " of " + item.qty + " units";
+          sr.appendChild(note);
+        }
+        row.appendChild(sr);
+      } else if (selected.length > 1) {
+        const un = document.createElement("button");
+        un.type = "button"; un.className = "linklike"; un.textContent = "Split unevenly";
+        un.addEventListener("click", () => { item.uneven = true; renderItems(); });
+        row.appendChild(un);
+      }
+      wrap.appendChild(row);
+    }
+  }
+
+  $("addItemForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const nameEl = e.target.elements.newItemName;
+    const priceEl = e.target.elements.newItemPrice;
+    if (!nameEl.value.trim() && !priceEl.value) return;
+    addItem(nameEl.value, priceEl.value);
+    nameEl.value = "";
+    priceEl.value = "";
+    nameEl.focus();
+  });
+
+  // ---------- quick add (bulk, plain-text parsing — no AI needed) ----------
+  // Accepts one item per line: "Name, 380", "Name - 380", "Name: 380" or just "Name 380".
+  const QUICK_LINE_RE = /^(.*\S)\s*[,\-:]?\s*₹?\s*([\d][\d,]*\.?\d*)\s*$/;
+
+  function parseQuickLines(text) {
+    const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+    const parsed = [];
+    const skipped = [];
+    for (const line of lines) {
+      const m = line.match(QUICK_LINE_RE);
+      if (!m) { skipped.push(line); continue; }
+      const name = m[1].replace(/[,\-:]\s*$/, "").trim();
+      const price = parseFloat(m[2].replace(/,/g, ""));
+      if (!name || !isFinite(price)) { skipped.push(line); continue; }
+      parsed.push({ name, price });
+    }
+    return { parsed, skipped };
+  }
+
+  $("quickAddToggleBtn").addEventListener("click", () => {
+    const area = $("quickAddArea");
+    const showing = area.style.display !== "none";
+    area.style.display = showing ? "none" : "block";
+    $("quickAddToggleBtn").textContent = showing ? "Add multiple items at once" : "Hide bulk add";
+    if (!showing) $("quickAddInput").focus();
+  });
+
+  $("quickAddBtn").addEventListener("click", () => {
+    const statusEl = $("quickAddStatus");
+    const text = $("quickAddInput").value;
+    const { parsed, skipped } = parseQuickLines(text);
+    if (parsed.length === 0) {
+      statusEl.textContent = "Couldn't find any \"item, price\" lines — one per line, price last.";
+      return;
+    }
+    for (const it of parsed) addItem(it.name, it.price);
+    statusEl.textContent = "Added " + parsed.length + " item" + (parsed.length === 1 ? "" : "s") + "." +
+      (skipped.length > 0 ? " Skipped " + skipped.length + " line" + (skipped.length === 1 ? "" : "s") + " that didn't end in a price." : "");
+    $("quickAddInput").value = skipped.join("\n");
+  });
+
+  // ---------- tax / tip ----------
+  $("taxInput").addEventListener("input", (e) => {
+    const v = parseFloat(e.target.value);
+    state.tax = isFinite(v) ? v : 0;
+    renderSummary();
+  });
+  $("tipInput").addEventListener("input", (e) => {
+    const v = parseFloat(e.target.value);
+    state.tip = isFinite(v) ? v : 0;
+    renderSummary();
+  });
+
+  // ---------- summary ----------
+  // Computes each person's exact share, then rounds to cents so the total reconciles exactly.
+  function computeSplit() {
+    const subtotal = state.items.reduce((s, i) => s + i.price, 0);
+    const billTotal = subtotal + state.tax + state.tip + state.other;
+    const assignedSubtotal = state.items.reduce(
+      (s, i) => s + (i.people.size > 0 ? i.price : 0), 0
+    );
+    const unassignedTotal = subtotal - assignedSubtotal;
+
+    const exact = state.people.map((p) => {
+      let itemShare = 0;
+      for (const item of state.items) {
+        if (item.people.has(p.id)) {
+          let totalW = 0;
+          for (const id of item.people) totalW += wOf(item, id);
+          itemShare += item.price * wOf(item, p.id) / totalW;
+        }
+      }
+      const ratio = assignedSubtotal > 0 ? itemShare / assignedSubtotal : 0;
+      const taxShare = state.tax * ratio;
+      const tipShare = state.tipMode === "equal" && state.people.length ? state.tip / state.people.length : state.tip * ratio;
+      const otherShare = state.other * ratio;
+      return { person: p, itemShare, taxShare, tipShare, otherShare, exactTotal: itemShare + taxShare + tipShare + otherShare };
+    });
+
+    const cents = exact.map((s) => Math.floor(s.exactTotal * 100));
+    let remainder = Math.round(
+      exact.reduce((sum, s) => sum + s.exactTotal, 0) * 100
+    ) - cents.reduce((a, b) => a + b, 0);
+    const order = exact
+      .map((s, idx) => ({ idx, frac: s.exactTotal * 100 - Math.floor(s.exactTotal * 100) }))
+      .sort((a, b) => b.frac - a.frac);
+    for (let k = 0; k < order.length && remainder > 0; k++, remainder--) {
+      cents[order[k].idx] += 1;
+    }
+
+    const shares = exact.map((s, idx) => ({
+      person: s.person, itemShare: s.itemShare, taxShare: s.taxShare, tipShare: s.tipShare, otherShare: s.otherShare,
+      amount: cents[idx] / 100,
+    }));
+    const collected = shares.reduce((s, r) => s + r.amount, 0);
+
+    return { subtotal, billTotal, assignedSubtotal, unassignedTotal, shares, collected };
+  }
+
+  function renderSummary() {
+    const split = computeSplit();
+    $("billTotal").textContent = fmt(split.billTotal);
+    renderTotalCheck(split);
+    renderPayerOptions();
+
+    const banner = $("unassignedBanner");
+    banner.innerHTML = "";
+    if (split.unassignedTotal > 0.004) {
+      const b = document.createElement("div");
+      b.className = "banner";
+      b.textContent = fmt(split.unassignedTotal) + " worth of items isn't assigned to anyone yet.";
+      banner.appendChild(b);
+    }
+
+    const list = $("summaryList");
+    list.innerHTML = "";
+
+    if (state.people.length === 0) {
+      const note = document.createElement("p");
+      note.className = "empty-note";
+      note.textContent = "Add people to see what they owe.";
+      list.appendChild(note);
+      $("collectedTotal").textContent = fmt(0);
+      return;
+    }
+
+    for (const s of split.shares) {
+      const row = document.createElement("div");
+      row.className = "stub";
+      const nameSpan = document.createElement("span");
+      nameSpan.className = "name";
+      nameSpan.textContent = s.person.name;
+      const payer = state.people.find((x) => x.id === state.payerId);
+      const isPayer = payer && payer.id === s.person.id;
+      const bits = [];
+      if (state.tax > 0 || state.tip > 0 || state.other !== 0) {
+        bits.push("items " + fmt(s.itemShare) +
+          (state.tax > 0 ? " · tax " + fmt(s.taxShare) : "") +
+          (state.tip > 0 ? " · tip " + fmt(s.tipShare) : "") +
+          (state.other !== 0 ? " · other " + fmt(s.otherShare) : ""));
+      }
+      if (isPayer) bits.push("paid the bill");
+      else if (payer) bits.push("owes " + payer.name);
+      if (bits.length) {
+        const breakdown = document.createElement("span");
+        breakdown.className = "breakdown";
+        breakdown.textContent = bits.join(" — ");
+        nameSpan.appendChild(breakdown);
+      }
+      const amt = document.createElement("span");
+      amt.className = "amt";
+      amt.textContent = fmt(s.amount);
+      const wrapAmt = document.createElement("div");
+      wrapAmt.className = "amt-wrap";
+      wrapAmt.appendChild(amt);
+      if (payer && !isPayer && state.upi && s.amount > 0) {
+        const a = document.createElement("a");
+        a.className = "pay-link";
+        a.textContent = "Pay";
+        a.href = upiLink(payer.name, s.amount);
+        wrapAmt.appendChild(a);
+      }
+      row.appendChild(nameSpan);
+      row.appendChild(wrapAmt);
+      list.appendChild(row);
+    }
+
+    $("collectedTotal").textContent = fmt(split.collected);
+  }
+
+  // ---------- total cross-check, payer, UPI ----------
+  function renderTotalCheck(split) {
+    const box = $("totalCheck");
+    box.innerHTML = "";
+    if (!(state.printedTotal > 0) || state.items.length === 0) return;
+    const diff = split.billTotal - state.printedTotal;
+    const d = document.createElement("div");
+    if (Math.abs(diff) <= 0.5) {
+      d.className = "check-ok";
+      d.textContent = "✓ Matches the printed total (" + fmt(state.printedTotal) + ").";
+    } else {
+      d.className = "check-warn";
+      d.textContent = "Items and charges come to " + fmt(split.billTotal) + " but the bill says " + fmt(state.printedTotal) +
+        " (" + (diff > 0 ? "+" : "−") + fmt(Math.abs(diff)) + "). " +
+        (diff < 0 ? "An item may be missing — or a discount isn't entered." : "An item may be misread or duplicated.");
+    }
+    box.appendChild(d);
+  }
+
+  function renderPayerOptions() {
+    const sel = $("payerSelect");
+    if (!state.people.some((p) => p.id === state.payerId)) state.payerId = null;
+    sel.innerHTML = "";
+    const none = document.createElement("option");
+    none.value = ""; none.textContent = "— not set —";
+    sel.appendChild(none);
+    for (const p of state.people) {
+      const o = document.createElement("option");
+      o.value = String(p.id); o.textContent = p.name;
+      sel.appendChild(o);
+    }
+    sel.value = state.payerId == null ? "" : String(state.payerId);
+  }
+
+  function upiLink(payeeName, amount) {
+    return "upi://pay?pa=" + encodeURIComponent(state.upi) + "&pn=" + encodeURIComponent(payeeName) +
+      "&am=" + amount.toFixed(2) + "&cu=INR&tn=" + encodeURIComponent("Hisaab, Please split");
+  }
+
+  $("payerSelect").addEventListener("change", (e) => {
+    state.payerId = e.target.value ? Number(e.target.value) : null;
+    renderSummary();
+  });
+  try { state.upi = localStorage.getItem("checkplease_upi") || ""; $("upiInput").value = state.upi; } catch (e) {}
+  $("upiInput").addEventListener("input", (e) => {
+    state.upi = e.target.value.trim();
+    try { localStorage.setItem("checkplease_upi", state.upi); } catch (err) {}
+    renderSummary();
+  });
+  $("otherInput").addEventListener("input", (e) => {
+    const v = parseFloat(e.target.value);
+    state.other = isFinite(v) ? v : 0;
+    renderSummary();
+  });
+  $("printedInput").addEventListener("input", (e) => {
+    const v = parseFloat(e.target.value);
+    state.printedTotal = isFinite(v) && v > 0 ? v : 0;
+    renderSummary();
+  });
+
+  document.querySelectorAll("[data-tip]").forEach((b) => b.addEventListener("click", () => {
+    const sub = state.items.reduce((t, i) => t + i.price, 0);
+    state.tip = Math.round(sub * Number(b.dataset.tip)) / 100;
+    $("tipInput").value = state.tip.toFixed(2);
+    renderSummary();
+  }));
+  $("tipMode").addEventListener("change", (e) => { state.tipMode = e.target.value; renderSummary(); });
+
+  // ---------- copy / share summary ----------
+  function buildSummaryText() {
+    const split = computeSplit();
+    const payer = state.people.find((x) => x.id === state.payerId);
+    const lines = ["HISAAB, PLEASE — " + new Date().toLocaleDateString()];
+    for (const item of state.items) {
+      const who = state.people.filter((p) => item.people.has(p.id))
+        .map((p) => p.name + (item.qty > 1 || item.uneven ? " ×" + wOf(item, p.id) : "")).join(", ") || "unassigned";
+      lines.push("  " + item.name + "  " + fmt(item.price) + "  (" + who + ")");
+    }
+    lines.push("Tax: " + fmt(state.tax) + "   Tip: " + fmt(state.tip) + (state.other ? "   Other: " + fmt(state.other) : ""));
+    lines.push("");
+    for (const s of split.shares) {
+      const owes = payer && payer.id !== s.person.id ? " → pay " + payer.name : (payer ? " (paid)" : "");
+      lines.push(s.person.name + ": " + fmt(s.amount) + owes);
+    }
+    if (payer && state.upi) lines.push("", "Pay " + payer.name + " on UPI: " + state.upi);
+    return lines.join("\n");
+  }
+
+  $("copyBtn").addEventListener("click", async () => {
+    const note = $("copyNote");
+    try {
+      await navigator.clipboard.writeText(buildSummaryText());
+      note.textContent = "Copied to clipboard.";
+    } catch (err) {
+      note.textContent = "Couldn't copy automatically — select and copy the summary manually.";
+    }
+    setTimeout(() => { note.textContent = ""; }, 3500);
+  });
+
+  $("shareBtn").addEventListener("click", () => {
+    window.open("https://wa.me/?text=" + encodeURIComponent(buildSummaryText()), "_blank");
+  });
+
+  // ---------- history (save / view past splits) ----------
+  // Stored in this browser's localStorage — private to this device, no login needed.
+  const HISTORY_KEY = "checkplease_splits_v1";
+
+  function loadSplitsFromStorage() {
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveSplitsToStorage(arr) {
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(arr));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  $("saveSplitBtn").addEventListener("click", () => {
+    const note = $("saveNote");
+    if (state.people.length === 0 || state.items.length === 0) {
+      note.textContent = "Add people and items before saving.";
+      setTimeout(() => { note.textContent = ""; }, 3000);
+      return;
+    }
+
+    const split = computeSplit();
+    const label = $("splitLabel").value.trim();
+    const body = {
+      id: "s" + Date.now() + Math.random().toString(36).slice(2, 7),
+      savedAt: Date.now(),
+      label: label || null,
+      billTotal: split.billTotal,
+      tax: state.tax,
+      tip: state.tip,
+      items: state.items.map((i) => ({
+        name: i.name,
+        price: i.price,
+        people: state.people.filter((p) => i.people.has(p.id)).map((p) => p.name),
+      })),
+      people: split.shares.map((s) => ({ name: s.person.name, amount: s.amount })),
+      v2: true,
+      other: state.other, printedTotal: state.printedTotal, tipMode: state.tipMode,
+      payer: (state.people.find((x) => x.id === state.payerId) || {}).name || null,
+      items2: state.items.map((i) => ({
+        name: i.name, price: i.price, qty: i.qty, uneven: i.uneven,
+        people: state.people.filter((p) => i.people.has(p.id)).map((p) => p.name),
+        weights: Object.fromEntries(state.people.filter((p) => i.people.has(p.id)).map((p) => [p.name, wOf(i, p.id)])),
+      })),
+    };
+
+    const all = loadSplitsFromStorage();
+    all.unshift(body);
+    const ok = saveSplitsToStorage(all.slice(0, 200));
+    note.textContent = ok ? "Split saved on this device." : "Couldn't save — your browser may be blocking local storage.";
+    if (ok) $("splitLabel").value = "";
+    if ($("historyArea").style.display !== "none") loadHistory();
+    setTimeout(() => { note.textContent = ""; }, 3500);
+  });
+
+  function renderHistoryList(entries) {
+    const list = $("historyList");
+    list.innerHTML = "";
+    $("historyEmptyNote").style.display = entries.length === 0 ? "block" : "none";
+
+    for (const d of entries) {
+      const entry = document.createElement("div");
+      entry.className = "history-entry";
+
+      const head = document.createElement("div");
+      head.className = "history-head";
+
+      const dateSpan = document.createElement("span");
+      dateSpan.className = "h-date";
+      const when = d.savedAt ? new Date(d.savedAt) : null;
+      dateSpan.textContent = when
+        ? when.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
+        : "";
+
+      const labelSpan = document.createElement("span");
+      labelSpan.className = "h-label";
+      labelSpan.textContent = d.label || "";
+
+      const totalSpan = document.createElement("span");
+      totalSpan.className = "h-total";
+      totalSpan.textContent = fmt(Number(d.billTotal) || 0);
+
+      const delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "item-del";
+      delBtn.textContent = "✕";
+      delBtn.setAttribute("aria-label", "Delete this saved split");
+      delBtn.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        const all = loadSplitsFromStorage().filter((x) => x.id !== d.id);
+        saveSplitsToStorage(all);
+        loadHistory();
+      });
+
+      head.appendChild(dateSpan);
+      head.appendChild(labelSpan);
+      head.appendChild(totalSpan);
+      head.appendChild(delBtn);
+      entry.appendChild(head);
+
+      const peopleWrap = document.createElement("div");
+      peopleWrap.className = "h-people";
+      peopleWrap.style.display = "none";
+      if (Array.isArray(d.people)) {
+        for (const p of d.people) {
+          const row = document.createElement("div");
+          row.className = "h-person-row";
+          row.textContent = p.name + " — " + fmt(Number(p.amount) || 0);
+          peopleWrap.appendChild(row);
+        }
+      }
+      if (d.v2) {
+        const open = document.createElement("button");
+        open.type = "button"; open.className = "linklike"; open.textContent = "Open to edit";
+        open.addEventListener("click", (ev) => { ev.stopPropagation(); reopenSplit(d); });
+        peopleWrap.appendChild(open);
+      }
+      entry.appendChild(peopleWrap);
+
+      head.addEventListener("click", () => {
+        peopleWrap.style.display = peopleWrap.style.display === "none" ? "block" : "none";
+      });
+
+      list.appendChild(entry);
+    }
+  }
+
+  function reopenSplit(d) {
+    state.people = []; state.items = []; state.nextPersonId = 1; state.nextItemId = 1;
+    const ids = {};
+    for (const p of d.people || []) { ids[p.name] = state.nextPersonId; state.people.push({ id: state.nextPersonId++, name: p.name }); }
+    for (const it of d.items2 || []) {
+      const item = { id: state.nextItemId++, name: it.name, price: it.price, qty: it.qty || 1, low: false, uneven: !!it.uneven, weights: {}, people: new Set() };
+      for (const n of it.people || []) if (ids[n]) { item.people.add(ids[n]); if (it.weights && it.weights[n] > 1) item.weights[ids[n]] = it.weights[n]; }
+      state.items.push(item);
+    }
+    state.tax = d.tax || 0; state.tip = d.tip || 0; state.other = d.other || 0;
+    state.printedTotal = d.printedTotal || 0; state.tipMode = d.tipMode || "order";
+    state.payerId = d.payer && ids[d.payer] ? ids[d.payer] : null;
+    $("taxInput").value = state.tax.toFixed(2); $("tipInput").value = state.tip.toFixed(2);
+    $("otherInput").value = state.other.toFixed(2); $("printedInput").value = state.printedTotal.toFixed(2);
+    $("tipMode").value = state.tipMode;
+    renderFriends(); renderPeople(); renderItems(); renderSummary();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function loadHistory() {
+    const statusEl = $("historyStatus");
+    const entries = loadSplitsFromStorage();
+    renderHistoryList(entries);
+    statusEl.textContent = "";
+  }
+
+  $("historyToggleBtn").addEventListener("click", () => {
+    const area = $("historyArea");
+    const showing = area.style.display !== "none";
+    area.style.display = showing ? "none" : "block";
+    $("historyToggleBtn").textContent = showing ? "View past splits" : "Hide past splits";
+    if (!showing) loadHistory();
+  });
+
+
+
+  // ---------- scanning ----------
+  function setScanButtonsEnabled(enabled) {
+    $("cameraBtn").disabled = !enabled;
+    $("uploadBtn").disabled = !enabled;
+  }
+
+  // Resizes (max 1800px) and boosts contrast so faded thermal receipts read better.
+  async function prepareImage(blob) {
+    try {
+      const bmp = await createImageBitmap(blob);
+      const k = Math.min(1, 1800 / Math.max(bmp.width, bmp.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+      const ctx = c.getContext("2d");
+      ctx.drawImage(bmp, 0, 0, c.width, c.height);
+      const img = ctx.getImageData(0, 0, c.width, c.height), d = img.data, hist = new Array(256).fill(0);
+      for (let i = 0; i < d.length; i += 4) { const g = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]); d[i] = g; hist[g]++; }
+      const n = d.length / 4; let lo = 0, hi = 255, acc = 0;
+      for (let v = 0; v < 256; v++) { acc += hist[v]; if (acc >= n * 0.02) { lo = v; break; } }
+      acc = 0; for (let v = 255; v >= 0; v--) { acc += hist[v]; if (acc >= n * 0.02) { hi = v; break; } }
+      if (hi - lo < 30) { lo = 0; hi = 255; }
+      for (let i = 0; i < d.length; i += 4) { const g = Math.max(0, Math.min(255, ((d[i] - lo) * 255) / (hi - lo))); d[i] = d[i + 1] = d[i + 2] = g; }
+      ctx.putImageData(img, 0, 0);
+      const out = await new Promise((r) => c.toBlob(r, "image/jpeg", 0.9));
+      return out ? { blob: out, type: "image/jpeg" } : { blob, type: blob.type || "image/jpeg" };
+    } catch (e) {
+      return { blob, type: blob.type || "image/jpeg" };
+    }
+  }
+
+  const SCAN_ERROR_COPY = {
+    ocr_unavailable: "The OCR library didn't load. Check your internet connection and reload the page.",
+    ocr_empty: "No readable text was found. Try a clearer, well-lit photo or enter the items manually.",
+    ocr_failed: "The browser couldn't process that image. Try a JPG or PNG photo, or enter the items manually.",
+    pdf_support_unavailable: "PDF support didn't load. Refresh the page and try again.",
+  };
+
+  function parseReceiptText(text) {
+    const result = { items: [], tax: 0, tip: 0, other: 0, printedTotal: 0 };
+    const lines = String(text || "").split(/\r?\n/);
+    const amountPattern = /[-+]?\s*(?:₹|rs\.?\s*)?\s*\d[\d,]*(?:\.\d{1,2})?/gi;
+    const ignoredLine = /\b(sub\s*total|subtotal|taxable|invoice|receipt|bill\s*(?:no|number)|gstin|phone|cashier|table|date|time|description|quantity|qty|rate|amount|payment|tendered|change|savings)\b/i;
+    const totalLine = /\b(grand\s*total|net\s*amount|amount\s*(?:due|payable|paid)|total(?:\s*(?:due|payable|amount))?|balance\s*due)\b/i;
+
+    for (const rawLine of lines) {
+      const line = rawLine.replace(/\s+/g, " ").trim();
+      if (!line) continue;
+      const amounts = Array.from(line.matchAll(amountPattern));
+      if (amounts.length === 0) continue;
+
+      const lastAmount = amounts[amounts.length - 1];
+      const value = Number(lastAmount[0].replace(/[^\d.+-]/g, ""));
+      if (!Number.isFinite(value)) continue;
+      const label = line.toLowerCase();
+
+      if (/\b(tip|gratuity)\b/.test(label)) {
+        result.tip += Math.abs(value);
+        continue;
+      }
+      if (/\b(cgst|sgst|igst|gst|vat|tax(?:es)?)\b/.test(label)) {
+        result.tax += Math.abs(value);
+        continue;
+      }
+      if (/\b(service\s*charge|delivery|packaging|discount|coupon|round(?:ing)?\s*off)\b/.test(label)) {
+        const negative = /\b(discount|coupon)\b/.test(label) || value < 0;
+        result.other += negative ? -Math.abs(value) : Math.abs(value);
+        continue;
+      }
+      if (totalLine.test(label) && !/\b(savings|discount)\b/.test(label)) {
+        result.printedTotal = Math.abs(value);
+        continue;
+      }
+      if (ignoredLine.test(label)) continue;
+
+      let quantity = 1;
+      let nameEnd = lastAmount.index;
+      let name = line.slice(0, nameEnd).trim();
+      const trailingUnitPrice = amounts.length > 1 ? amounts[amounts.length - 2] : null;
+      if (trailingUnitPrice && /^\s*$/.test(line.slice(trailingUnitPrice.index + trailingUnitPrice[0].length, lastAmount.index))) {
+        const beforeUnitPrice = line.slice(0, trailingUnitPrice.index).trim();
+        const quantityMatch = beforeUnitPrice.match(/(?:^|\s)(\d{1,3})\s*[x×]\s*$/i);
+        const quantityAtEnd = beforeUnitPrice.match(/^(.*?)\s*[x×]\s*$/i);
+        if (quantityMatch) {
+          quantity = Math.min(Number(quantityMatch[1]), 50);
+          name = beforeUnitPrice.slice(0, quantityMatch.index).trim();
+        } else if (quantityAtEnd && Number(trailingUnitPrice[0].replace(/[^\d]/g, "")) <= 50) {
+          quantity = Number(trailingUnitPrice[0].replace(/[^\d]/g, ""));
+          name = quantityAtEnd[1].trim();
+        } else {
+          name = beforeUnitPrice;
+        }
+      }
+
+      const quantityAtStart = name.match(/^(\d{1,3})\s*[x×]\s*(.+)$/i);
+      if (quantityAtStart) {
+        quantity = Math.min(Number(quantityAtStart[1]), 50);
+        name = quantityAtStart[2].trim();
+      } else {
+        const quantityAtEnd = name.match(/^(.+?)\s+(\d{1,3})\s*[x×]\s*$/i);
+        if (quantityAtEnd) {
+          name = quantityAtEnd[1].trim();
+          quantity = Math.min(Number(quantityAtEnd[2]), 50);
+        }
+      }
+      name = name.replace(/[\s|,:;.-]+$/, "").trim();
+      if (!name || !/[a-zA-Z\u0900-\u097F]/.test(name) || value < 0) continue;
+      result.items.push({ name, quantity, price: Math.abs(value), uncertain: true });
+    }
+
+    return result;
+  }
+
+  // Applies a parsed {items, tax, tip} result to the app state. Returns how many items were added.
+  function applyParsedItems(data) {
+    let added = 0;
+    const num = (v) => (isFinite(Number(v)) ? Number(v) : 0);
+    if (data && Array.isArray(data.items)) {
+      for (const it of data.items) {
+        const name = (it && it.name ? String(it.name) : "").trim();
+        const price = Number(it && it.price);
+        if (name && isFinite(price) && price >= 0) {
+          addItem(name, price, { qty: it.quantity, low: it.uncertain === true });
+          added++;
+        }
+      }
+    }
+    if (data) {
+      state.tax += Math.max(0, num(data.tax));
+      state.tip += Math.max(0, num(data.tip));
+      state.other += num(data.other);
+      state.printedTotal += Math.max(0, num(data.printedTotal));
+      $("taxInput").value = state.tax.toFixed(2);
+      $("tipInput").value = state.tip.toFixed(2);
+      $("otherInput").value = state.other.toFixed(2);
+      $("printedInput").value = state.printedTotal.toFixed(2);
+    }
+    return added;
+  }
+
+  function isPdfFile(file) {
+    return file.type === "application/pdf" || /\.pdf$/i.test(file.name || "");
+  }
+
+  // Renders page 1 of a PDF e-bill to a PNG blob so it can be analyzed like a photo.
+  async function pdfFirstPageToImageBlob(file) {
+    if (!window.pdfjsLib) throw new Error("pdf_support_unavailable");
+    const buf = await file.arrayBuffer();
+    const pdf = await window.pdfjsLib.getDocument({ data: buf }).promise;
+    const page = await pdf.getPage(1);
+    const viewport = page.getViewport({ scale: 2 });
+    const canvas = document.createElement("canvas");
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext("2d");
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+    return { blob, pageCount: pdf.numPages };
+  }
+
+  async function recognizeBillText(blob, statusEl) {
+    if (!window.Tesseract) throw Object.assign(new Error("ocr_unavailable"), { code: "ocr_unavailable" });
+    let worker;
+    try {
+      worker = await window.Tesseract.createWorker("eng", 1, {
+        logger(message) {
+          if (message.status === "recognizing text") {
+            statusEl.textContent = "Reading bill locally… " + Math.round(message.progress * 100) + "%";
+          }
+        },
+      });
+    } catch (e) {
+      throw Object.assign(new Error("ocr_unavailable"), { code: "ocr_unavailable" });
+    }
+    try {
+      const result = await worker.recognize(blob);
+      const text = result && result.data ? String(result.data.text || "").trim() : "";
+      if (!text) throw Object.assign(new Error("ocr_empty"), { code: "ocr_empty" });
+      return text;
+    } catch (e) {
+      if (e && e.code) throw e;
+      throw Object.assign(new Error("ocr_failed"), { code: "ocr_failed" });
+    } finally {
+      await worker.terminate();
+    }
+  }
+
+  // Scans one photo/e-bill locally. Returns { added, note } or throws with an err.code.
+  async function scanOneBillFile(file, statusEl) {
+    let imageBlob = file;
+    let note = "";
+    if (isPdfFile(file)) {
+      const { blob, pageCount } = await pdfFirstPageToImageBlob(file);
+      imageBlob = blob;
+      if (pageCount > 1) note = " (page 1 of " + pageCount + ")";
+    }
+
+    const prepped = await prepareImage(imageBlob);
+    const text = await recognizeBillText(prepped.blob, statusEl);
+    const data = parseReceiptText(text);
+    const added = applyParsedItems(data);
+    return { added, note };
+  }
+
+  // Handles one or many bill photos / e-bills at once, reading each in turn and feeding
+  // every item it finds straight into the shared item list.
+  async function handleBillFiles(fileList) {
+    const files = Array.from(fileList || []).filter(Boolean);
+    if (files.length === 0) return;
+    const statusEl = $("scanStatus");
+    setScanButtonsEnabled(false);
+
+    let totalAdded = 0;
+    let failed = 0;
+    let lastErrMsg = "";
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const prefix = files.length > 1 ? "Bill " + (i + 1) + " of " + files.length + ": " : "";
+      statusEl.textContent = prefix + (isPdfFile(file) ? "Opening the e-bill…" : "Preparing the photo…");
+      try {
+      const result = await scanOneBillFile(file, statusEl);
+        totalAdded += result.added;
+      } catch (err) {
+        failed++;
+        const code = err && err.code;
+        lastErrMsg = SCAN_ERROR_COPY[code] || "Couldn't read that one.";
+      }
+    }
+
+    renderSummary();
+
+    const parts = [];
+    if (totalAdded > 0) {
+      parts.push("Added " + totalAdded + " item" + (totalAdded === 1 ? "" : "s") +
+        (files.length > 1 ? " from " + (files.length - failed) + " bill" + (files.length - failed === 1 ? "" : "s") : "") +
+        " — check the highlighted names and prices before splitting.");
+    }
+    if (failed > 0) {
+      parts.push((totalAdded > 0 ? " " : "") + failed + " file" + (failed === 1 ? "" : "s") + " couldn't be read" +
+        (lastErrMsg ? " (" + lastErrMsg + ")" : "") + ".");
+    }
+    if (totalAdded === 0 && failed === 0) {
+      parts.push("Couldn't find any items in that bill — try again or add them manually.");
+    }
+    statusEl.textContent = parts.join("") || "Done.";
+    setScanButtonsEnabled(true);
+  }
+
+  $("cameraBtn").addEventListener("click", () => $("cameraInput").click());
+  $("uploadBtn").addEventListener("click", () => $("uploadInput").click());
+
+  $("cameraInput").addEventListener("change", (e) => {
+    const files = e.target.files;
+    handleBillFiles(files);
+    e.target.value = "";
+  });
+
+  $("uploadInput").addEventListener("change", (e) => {
+    const files = e.target.files;
+    handleBillFiles(files);
+    e.target.value = "";
+  });
+
+  $("pasteToggleBtn").addEventListener("click", () => {
+    const area = $("pasteArea");
+    const showing = area.style.display !== "none";
+    area.style.display = showing ? "none" : "block";
+    $("pasteToggleBtn").textContent = showing ? "Or paste the bill text instead" : "Hide text box";
+    if (!showing) $("pasteInput").focus();
+  });
+
+  $("pasteAnalyzeBtn").addEventListener("click", async () => {
+    const statusEl = $("scanStatus");
+    const text = $("pasteInput").value.trim();
+    if (!text) {
+      statusEl.textContent = "Paste the bill's text in the box first.";
+      return;
+    }
+
+    const data = parseReceiptText(text);
+    const added = applyParsedItems(data);
+    renderSummary();
+    statusEl.textContent = added > 0
+      ? "Added " + added + " item" + (added === 1 ? "" : "s") + " — check the highlighted results before splitting."
+      : "Couldn't identify item rows in that text. Add them manually or adjust the text and try again.";
+  });
+
+  // ---------- init ----------
+  renderPeople();
+  renderFriends();
+  renderItems();
+  renderSummary();
+})();
+</script>
+</body>
+</html>

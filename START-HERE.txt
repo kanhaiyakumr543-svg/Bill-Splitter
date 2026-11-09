@@ -1,0 +1,8 @@
+DEPLOY IN 3 STEPS (no AI key or bill-reading API required)
+
+1. Put this whole folder on GitHub.
+2. On render.com, create a new Blueprint from the repository and deploy.
+3. Open the Render URL on your phone or computer.
+
+Bill photos are read by free OCR in the browser and are not uploaded to the server.
+The host may sleep when idle; free-host limits and availability can change.
