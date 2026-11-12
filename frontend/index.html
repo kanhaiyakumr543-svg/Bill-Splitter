@@ -527,7 +527,7 @@
         <input type="file" id="cameraInput" accept="image/*" capture="environment" multiple style="display:none">
         <input type="file" id="uploadInput" accept="image/*,application/pdf" multiple style="display:none">
       </div>
-      <p class="empty-note" style="margin-top:6px">Free OCR reads bills in your browser. Photos stay on this device; check the highlighted results before splitting.</p>
+      <p class="empty-note" style="margin-top:6px">Free OCR reads bills in your browser and looks for item rows, tax and the printed total. Photos stay on this device; check the highlighted results before splitting.</p>
       <div class="scan-status" id="scanStatus"></div>
       <div class="paste-toggle">
         <button type="button" class="linklike" id="pasteToggleBtn">Or paste the bill text instead</button>
@@ -1434,8 +1434,11 @@
     const result = { items: [], tax: 0, tip: 0, other: 0, printedTotal: 0 };
     const lines = String(text || "").split(/\r?\n/);
     const amountPattern = /[-+]?\s*(?:₹|rs\.?\s*)?\s*\d[\d,]*(?:\.\d{1,2})?/gi;
-    const ignoredLine = /\b(sub\s*total|subtotal|taxable|invoice|receipt|bill\s*(?:no|number)|gstin|phone|cashier|table|date|time|description|quantity|qty|rate|amount|payment|tendered|change|savings)\b/i;
-    const totalLine = /\b(grand\s*total|net\s*amount|amount\s*(?:due|payable|paid)|total(?:\s*(?:due|payable|amount))?|balance\s*due)\b/i;
+    const ignoredLine = /\b(sub\s*total|subtotal|taxable|invoice|receipt|bill\s*(?:no|number|#)|gstin|fssai|food\s*safety|licen[cs]e|fbo\s*(?:id|no|number)?|hsn|sac|sku|barcode|product\s*(?:code|id|no|number)|item\s*(?:code|id|no|number)|phone|mobile|contact|cashier|table|date|time|description|quantity|qty|rate|amount|payment|tendered|change|savings|order\s*(?:id|no|number)|transaction|txn|reference|ref\s*(?:no|number)?|authorization|auth\s*code|address|pin\s*code|postal\s*code|cash|upi|card|visa|mastercard|amex|paid\s*(?:by|via|through)?|balance|loyalty|member\s*(?:id|no)|thank\s*you)\b/i;
+    const taxLine = /^\s*(?:(?:\d+(?:\.\d+)?\s*%|@\s*\d+(?:\.\d+)?\s*%)\s*)?(?:cgst|sgst|igst|gst|vat|central\s+gst|state\s+gst|tax(?:es)?)\b/i;
+    const totalLine = /^\s*(?:grand\s*total|net\s*(?:total|amount)|amount\s*(?:due|payable|paid)|total(?:\s*(?:due|payable|amount))?|balance\s*due|bill\s*total)\b(?=\s*(?:[:\-]|₹|rs\.?\s*|inr\s*|\d))/i;
+    const amountDueLine = /^\s*(?:grand\s*total|net\s*(?:total|amount)|amount\s*(?:due|payable|paid)|balance\s*due|bill\s*total)\b(?=\s*(?:[:\-]|₹|rs\.?\s*|inr\s*|\d))/i;
+    let printedTotalPriority = 0;
 
     for (const rawLine of lines) {
       const line = rawLine.replace(/\s+/g, " ").trim();
@@ -1452,7 +1455,7 @@
         result.tip += Math.abs(value);
         continue;
       }
-      if (/\b(cgst|sgst|igst|gst|vat|tax(?:es)?)\b/.test(label)) {
+      if (taxLine.test(label) && !/\b(?:invoice|receipt|taxable)\b/.test(label)) {
         result.tax += Math.abs(value);
         continue;
       }
@@ -1461,15 +1464,18 @@
         result.other += negative ? -Math.abs(value) : Math.abs(value);
         continue;
       }
-      if (totalLine.test(label) && !/\b(savings|discount)\b/.test(label)) {
-        result.printedTotal = Math.abs(value);
+      if (totalLine.test(label) && !/\b(savings|discount|points|items?|quantity|qty)\b/.test(label)) {
+        const priority = amountDueLine.test(label) ? 2 : 1;
+        if (priority >= printedTotalPriority) {
+          result.printedTotal = Math.abs(value);
+          printedTotalPriority = priority;
+        }
         continue;
       }
       if (ignoredLine.test(label)) continue;
 
       let quantity = 1;
-      let nameEnd = lastAmount.index;
-      let name = line.slice(0, nameEnd).trim();
+      let name = line.slice(0, lastAmount.index).trim();
       const trailingUnitPrice = amounts.length > 1 ? amounts[amounts.length - 2] : null;
       if (trailingUnitPrice && /^\s*$/.test(line.slice(trailingUnitPrice.index + trailingUnitPrice[0].length, lastAmount.index))) {
         const beforeUnitPrice = line.slice(0, trailingUnitPrice.index).trim();
@@ -1486,6 +1492,16 @@
         }
       }
 
+      if (amounts.length >= 3) {
+        const firstAmount = amounts[0];
+        const possibleQuantity = Number(firstAmount[0].replace(/[^\d]/g, ""));
+        const beforeQuantity = line.slice(0, firstAmount.index).trim();
+        if (beforeQuantity && Number.isInteger(possibleQuantity) && possibleQuantity > 0 && possibleQuantity <= 50) {
+          quantity = possibleQuantity;
+          name = beforeQuantity.replace(/\s*[x×]\s*$/, "").trim();
+        }
+      }
+
       const quantityAtStart = name.match(/^(\d{1,3})\s*[x×]\s*(.+)$/i);
       if (quantityAtStart) {
         quantity = Math.min(Number(quantityAtStart[1]), 50);
@@ -1498,7 +1514,9 @@
         }
       }
       name = name.replace(/[\s|,:;.-]+$/, "").trim();
-      if (!name || !/[a-zA-Z\u0900-\u097F]/.test(name) || value < 0) continue;
+      name = name.replace(/^(?:\d{5,}|(?=[a-z0-9-]*\d)[a-z0-9-]{6,})\s+/i, "")
+        .replace(/\s+(?:\d{5,}|(?=[a-z0-9-]*\d)[a-z0-9-]{6,})$/, "").trim();
+      if (!name || name.length > 80 || !/[a-zA-Z\u0900-\u097F]/.test(name) || value < 0) continue;
       result.items.push({ name, quantity, price: Math.abs(value), uncertain: true });
     }
 

@@ -32,8 +32,9 @@ included Render setup serves the same files through the lightweight Node server.
 ## Scanning limitations
 
 - Tesseract.js recognizes English text locally in the browser; it does not understand receipt
-  layout as well as a vision model. The parser is heuristic, so check the highlighted item
-  names, quantities and prices before splitting.
+  layout as well as a vision model. The parser looks for item rows and separately recognizes
+  common tax, fee and total labels; it can still misread unusual receipt layouts, so check the
+  highlighted item names, quantities and prices before splitting.
 - Photos are not uploaded. The browser does download the OCR code and language data from public
   CDNs; an internet connection is needed for those assets.
 - PDFs are rasterized and only the first page is scanned.
